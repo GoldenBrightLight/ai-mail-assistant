@@ -1,0 +1,1876 @@
+{
+  "name": "Telegram Controller",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "callback_query",
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "id": "b3a32edb-5e51-4264-811d-d449bd2ecf8c",
+      "name": "Telegram Event Trigger",
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.5,
+      "position": [
+        -320,
+        224
+      ]
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 4
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.callback_query ? 'callback' : '' }}",
+                    "rightValue": "callback",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "b1b35d79-c763-434d-bf54-f57116404f54"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 4
+                },
+                "conditions": [
+                  {
+                    "id": "ae6ffa28-6e9e-4cd1-b10d-9f010073edf0",
+                    "leftValue": "={{ $json.message ? 'message' : '' }}",
+                    "rightValue": "message",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "1045ebd8-3b68-43dd-9405-efdb4f8d84b0",
+      "name": "Route Callback or Message",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.5,
+      "position": [
+        -96,
+        224
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "385f2161-fcc3-4574-9705-bcc1cefcae8a",
+              "leftValue": "={{ $json.callback_query.from.id }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "95b55a3c-7d75-4702-9411-524defc880e1",
+      "name": "Is Owner Button Press?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        416,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "callback",
+        "queryId": "={{ $json.callback_query.id }}",
+        "additionalFields": {
+          "text": "⏳ Обрабатываю..."
+        }
+      },
+      "id": "9c2dbc0a-6490-4a4c-a094-fa4d4d8ad6b0",
+      "name": "Acknowledge Button Press",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        640,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "\nconst data = String($('Telegram Event Trigger').first().json.callback_query?.data || '').trim();\n\nconst match = /^(approve|reject|edit)_(\\d+)$/.exec(data);\n\nif (!match) {\n  throw new Error(\"Invalid callback data\");\n}\n\nreturn [{\n  json: {\n    action: match[1],\n    mail_id: Number(match[2])\n  }\n}];\n"
+      },
+      "id": "6666d7cd-7c7c-4c3f-8c22-30f845a83340",
+      "name": "Parse Button Action",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        864,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.action }}",
+                    "rightValue": "approve",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "cd789369-9900-42cb-aa89-dab3ccf38707"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "fc67ef54-4c57-41d0-9dab-4ea465042ea1",
+                    "leftValue": "={{ $json.action }}",
+                    "rightValue": "reject",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "829ceb33-c7c6-4315-ab99-648c53e53451",
+                    "leftValue": "={{ $json.action }}",
+                    "rightValue": "edit",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "b0a61078-4221-4076-aa1b-e6bdde38f06c",
+      "name": "Route Button Action",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        1088,
+        -16
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "value": "YOUR_DATA_TABLE_ID",
+          "mode": "list",
+          "cachedResultName": "Mails"
+        },
+        "filters": {
+          "conditions": [
+            {
+              "keyValue": "={{ $json.mail_id }}"
+            }
+          ]
+        }
+      },
+      "id": "07f43c8c-d72b-4a55-aa2b-a5816cb076ce",
+      "name": "Get Mail for Approval",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        1648,
+        -512
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "8df71f34-45ad-41d6-8470-d3a5eb57be52",
+              "leftValue": "={{ $json.status }}",
+              "rightValue": "=pending",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "c465bbfc-6cc7-439c-b665-972256cab94f",
+      "name": "Is Mail Pending (Approve)?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1872,
+        -512
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "value": "YOUR_DATA_TABLE_ID",
+          "mode": "list",
+          "cachedResultName": "Mails"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "sender",
+              "keyValue": "={{ $json.sender }}"
+            }
+          ]
+        },
+        "returnAll": true
+      },
+      "id": "d52dc083-e69e-4e53-bf8d-947366b88885",
+      "name": "Get Sender Mail History",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        2096,
+        -512
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "\nconst rows = $input.all().map(item => item.json);\n\nconst now = Date.now();\nconst last24h = now - 24 * 60 * 60 * 1000;\nconst limit = 5;\n\nconst sentCount24h = rows.filter(row => {\n  if (row.status !== 'sent') return false;\n  if (!row.sent_at) return false;\n\n  const timestamp = new Date(row.sent_at).getTime();\n\n  return Number.isFinite(timestamp) &&\n    timestamp >= last24h &&\n    timestamp <= now;\n}).length;\n\nreturn [{\n  json: {\n    sender: rows[0]?.sender,\n    sentCount24h,\n    limit,\n    allowed: sentCount24h < limit\n  }\n}];\n"
+      },
+      "id": "b06866a5-69b2-4246-aa20-45d0d48e14ef",
+      "name": "Check 24h Send Limit",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2320,
+        -512
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 4
+          },
+          "conditions": [
+            {
+              "id": "ad6f4ccd-17bb-402d-8d3a-b07bfeaa72e6",
+              "leftValue": "={{ $json.allowed }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "433cec5b-4a4e-4396-97a6-c26679d00c33",
+      "name": "Within Send Limit?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.4,
+      "position": [
+        2544,
+        -512
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "dataTableId": {
+          "__rl": true,
+          "value": "YOUR_DATA_TABLE_ID",
+          "mode": "list",
+          "cachedResultName": "Mails"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyValue": "={{ $('Get Mail for Approval').first().json.id }}"
+            },
+            {
+              "keyName": "status",
+              "keyValue": "pending"
+            }
+          ]
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "status": "sending"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "email_id",
+              "displayName": "email_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "thread_id",
+              "displayName": "thread_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "sender",
+              "displayName": "sender",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "body",
+              "displayName": "body",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "draft_reply",
+              "displayName": "draft_reply",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "168f6bc3-9c46-43b5-88c2-3a702d09658f",
+      "name": "Lock Mail as Sending",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        2768,
+        -608
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "lock-approve-id-exists",
+              "leftValue": "={{ $json.id }}",
+              "rightValue": "",
+              "operator": {
+                "type": "number",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "a4172aef-032f-4770-8306-2c0c37176162",
+      "name": "Sending Lock Acquired?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        2992,
+        -608
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "reply",
+        "messageId": "={{ $('Get Mail for Approval').first().json.email_id }}",
+        "emailType": "text",
+        "message": "={{ $('Get Mail for Approval').first().json.draft_reply }}",
+        "options": {}
+      },
+      "id": "c8a34be6-c4cd-4919-868a-772558257bbb",
+      "name": "Send Gmail Reply",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        3216,
+        -608
+      ],
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "dataTableId": {
+          "__rl": true,
+          "value": "YOUR_DATA_TABLE_ID",
+          "mode": "list",
+          "cachedResultName": "Mails"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyValue": "={{ $('Get Mail for Approval').first().json.id }}"
+            },
+            {
+              "keyName": "status",
+              "keyValue": "sending"
+            }
+          ]
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "status": "sent",
+            "sent_at": "={{ $now.toISO() }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "email_id",
+              "displayName": "email_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "thread_id",
+              "displayName": "thread_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "sender",
+              "displayName": "sender",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "body",
+              "displayName": "body",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "draft_reply",
+              "displayName": "draft_reply",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "edit_message_id",
+              "displayName": "edit_message_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "sent_at",
+              "displayName": "sent_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "3466f27f-eb67-47e8-9947-6365cdc31580",
+      "name": "Mark Mail as Sent",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        3440,
+        -704
+      ]
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Event Trigger').first().json.callback_query.message.chat.id }}",
+        "text": "✅ MailPilot: ответ одобрен и отправлен через Gmail.",
+        "additionalFields": {}
+      },
+      "id": "7a1e02bf-38b4-410f-8d30-fe400a1e380d",
+      "name": "Notify Reply Sent",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        3664,
+        -704
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "dataTableId": {
+          "__rl": true,
+          "value": "YOUR_DATA_TABLE_ID",
+          "mode": "list",
+          "cachedResultName": "Mails"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyValue": "={{ $('Lock Mail as Sending').first().json.id }}"
+            },
+            {
+              "keyName": "status",
+              "keyValue": "sending"
+            }
+          ]
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "status": "pending"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "862f5e73-31a6-4f60-b11e-7f26bd6d0865",
+      "name": "Revert Status to Pending",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        3440,
+        -512
+      ]
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Event Trigger').first().json.callback_query.message.chat.id }}",
+        "text": "⚠️ MailPilot: не удалось отправить письмо через Gmail. Статус возвращён в pending — можно нажать «Одобрить» ещё раз.",
+        "additionalFields": {}
+      },
+      "id": "c0c8b8d6-182b-446d-a877-98d50b61a347",
+      "name": "Notify Send Error",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        3664,
+        -512
+      ]
+    },
+    {
+      "parameters": {
+        "chatId": "YOUR_TELEGRAM_CHAT_ID",
+        "text": "={{ 'MailPilot — лимит ответов достигнут.\\n\\nОтправитель: ' + $json.sender + '\\nОтправлено за 24 часа: ' + $json.sentCount24h + '\\nЛимит: ' + $json.limit + '\\n\\nПисьмо не отправлено.' }}",
+        "additionalFields": {}
+      },
+      "id": "3853f665-e8da-4af3-b151-4f3cd5051113",
+      "name": "Notify Send Limit Reached",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        2768,
+        -416
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "value": "YOUR_DATA_TABLE_ID",
+          "mode": "list",
+          "cachedResultName": "Mails"
+        },
+        "filters": {
+          "conditions": [
+            {
+              "keyValue": "={{ $('Parse Button Action').first().json.mail_id }}"
+            }
+          ]
+        }
+      },
+      "id": "0b61a21b-ff70-4fe9-a8cb-8753e6702490",
+      "name": "Get Mail for Rejection",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        2208,
+        32
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "973ff199-e7d3-47e9-840c-305f1e8e44ae",
+              "leftValue": "={{ $json.status }}",
+              "rightValue": "pending",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "5ccc409e-1b2e-40cb-af15-9a496933603d",
+      "name": "Is Mail Pending (Reject)?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        2432,
+        32
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "dataTableId": {
+          "__rl": true,
+          "value": "YOUR_DATA_TABLE_ID",
+          "mode": "list",
+          "cachedResultName": "Mails"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyValue": "={{ $('Parse Button Action').first().json.mail_id }}"
+            },
+            {
+              "keyName": "status",
+              "keyValue": "pending"
+            }
+          ]
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "status": "rejected"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "email_id",
+              "displayName": "email_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "thread_id",
+              "displayName": "thread_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "sender",
+              "displayName": "sender",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "body",
+              "displayName": "body",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "draft_reply",
+              "displayName": "draft_reply",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "65920486-cce7-47e6-bcc3-9c56d4ba60e5",
+      "name": "Mark Mail as Rejected",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        2656,
+        32
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "lock-reject-id-exists",
+              "leftValue": "={{ $json.id }}",
+              "rightValue": "",
+              "operator": {
+                "type": "number",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "9c6e9624-ca30-4d32-a660-886972e139fc",
+      "name": "Reject Lock Acquired?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        2880,
+        32
+      ]
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Event Trigger').first().json.callback_query.message.chat.id }}",
+        "text": "❌ MailPilot: ответ отклонён. Письмо не отправлено.",
+        "additionalFields": {}
+      },
+      "id": "8b6b1427-c8d8-4b79-b098-dc4face280d1",
+      "name": "Notify Reply Rejected",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        3104,
+        32
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "value": "YOUR_DATA_TABLE_ID",
+          "mode": "list",
+          "cachedResultName": "Mails"
+        },
+        "filters": {
+          "conditions": [
+            {
+              "keyValue": "=\t{{ $json.mail_id }}"
+            }
+          ]
+        },
+        "limit": 1
+      },
+      "id": "5c49da31-2175-45e5-b231-791a9508dc9b",
+      "name": "Get Mail for Editing",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        2320,
+        448
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 4
+          },
+          "conditions": [
+            {
+              "id": "126c6a1e-78f0-44aa-8ec9-6dfc160850e3",
+              "leftValue": "={{ $json.status }}",
+              "rightValue": "pending",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "f7e17f33-ce0b-4fb8-bcea-dd3f81586101",
+      "name": "Is Mail Pending (Edit)?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.4,
+      "position": [
+        2544,
+        448
+      ]
+    },
+    {
+      "parameters": {
+        "chatId": "YOUR_TELEGRAM_CHAT_ID",
+        "text": "=Ваше письмо ждет изменений:\n\nОтправь исправленный текст, используя функцию «Ответить» (Reply) на это сообщение.",
+        "additionalFields": {}
+      },
+      "id": "189c8f4e-a88d-408a-8eb9-7c3d8f222853",
+      "name": "Request Edited Text",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        2768,
+        448
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "dataTableId": {
+          "__rl": true,
+          "value": "YOUR_DATA_TABLE_ID",
+          "mode": "list",
+          "cachedResultName": "Mails"
+        },
+        "filters": {
+          "conditions": [
+            {
+              "keyValue": "={{ $('Get Mail for Editing').first().json.id }}"
+            },
+            {
+              "keyName": "status",
+              "keyValue": "pending"
+            }
+          ]
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "edit_message_id": "=\t{{ $json.result.message_id }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "email_id",
+              "displayName": "email_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "thread_id",
+              "displayName": "thread_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "sender",
+              "displayName": "sender",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "body",
+              "displayName": "body",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "draft_reply",
+              "displayName": "draft_reply",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "edit_message_id",
+              "displayName": "edit_message_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "04307092-8234-47d1-89c9-3fc1ff529551",
+      "name": "Save Edit Prompt ID",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        2992,
+        448
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 4
+          },
+          "conditions": [
+            {
+              "id": "ed2539fe-a134-4292-a19c-f3271f700004",
+              "leftValue": "={{ $json.message.from.id }}",
+              "rightValue": "0",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "id": "126db29e-1e2d-408c-b1d7-4cbc837f443b",
+      "name": "Is Message From Owner?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.4,
+      "position": [
+        192,
+        448
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 4
+          },
+          "conditions": [
+            {
+              "id": "195d31c5-af12-4145-a528-32d70eca325f",
+              "leftValue": "={{ $json.message.reply_to_message?.message_id ?? 0 }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            },
+            {
+              "id": "11301c22-fa72-49e2-914b-80b4cacbbba8",
+              "leftValue": "={{ $json.message.text ?? '' }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "b67f273f-d927-4e6d-b88a-bf945ad4e1b8",
+      "name": "Is Reply With Text?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.4,
+      "position": [
+        416,
+        448
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "value": "YOUR_DATA_TABLE_ID",
+          "mode": "list",
+          "cachedResultName": "Mails"
+        },
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "edit_message_id",
+              "keyValue": "={{ $json.message.reply_to_message.message_id }}"
+            }
+          ]
+        },
+        "limit": 1
+      },
+      "id": "b65456fe-7386-4559-958e-1d083270d4f1",
+      "name": "Find Mail by Edit Prompt",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        640,
+        448
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 4
+          },
+          "conditions": [
+            {
+              "id": "339ebb44-97bb-4602-9348-e4173c7c9584",
+              "leftValue": "={{ $json.status }}",
+              "rightValue": "pending",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "65f40b74-7eb5-4f03-8251-5a99428d87c3",
+      "name": "Is Edited Mail Pending?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.4,
+      "position": [
+        864,
+        448
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "dataTableId": {
+          "__rl": true,
+          "value": "YOUR_DATA_TABLE_ID",
+          "mode": "list",
+          "cachedResultName": "Mails"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyValue": "={{ $json.id }}"
+            },
+            {
+              "keyName": "status",
+              "keyValue": "pending"
+            },
+            {
+              "keyName": "edit_message_id",
+              "keyValue": "={{ $('Is Reply With Text?').first().json.message.reply_to_message.message_id }}"
+            }
+          ]
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "draft_reply": "={{ $('Is Reply With Text?').first().json.message.text }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "email_id",
+              "displayName": "email_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "thread_id",
+              "displayName": "thread_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "sender",
+              "displayName": "sender",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "body",
+              "displayName": "body",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "draft_reply",
+              "displayName": "draft_reply",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "edit_message_id",
+              "displayName": "edit_message_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "0a1b9d45-1da3-44b0-b4d8-813767506b06",
+      "name": "Save Edited Draft",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        1088,
+        448
+      ]
+    },
+    {
+      "parameters": {
+        "chatId": "YOUR_TELEGRAM_CHAT_ID",
+        "text": "={{ '✏️ MailPilot — черновик обновлён\\n\\n' + 'ID письма: ' + $json.id + '\\n\\nИсправленный ответ:\\n' + $json.draft_reply + '\\n\\nПодтвердить отправку?' }}",
+        "replyMarkup": "inlineKeyboard",
+        "inlineKeyboard": {
+          "rows": [
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "Approve",
+                    "additionalFields": {
+                      "callback_data": "={{ 'approve_' + $json.id }}"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "Edit",
+                    "additionalFields": {
+                      "callback_data": "={{ 'edit_' + $json.id }}"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "Reject",
+                    "additionalFields": {
+                      "callback_data": "={{ 'reject_' + $json.id }}"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "additionalFields": {}
+      },
+      "id": "ab37809c-7864-4ce3-b89b-682c283ade2b",
+      "name": "Send Updated Draft for Approval",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1312,
+        448
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Telegram Event Trigger": {
+      "main": [
+        [
+          {
+            "node": "Route Callback or Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Route Callback or Message": {
+      "main": [
+        [
+          {
+            "node": "Is Owner Button Press?",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Is Message From Owner?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Owner Button Press?": {
+      "main": [
+        [
+          {
+            "node": "Acknowledge Button Press",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Acknowledge Button Press": {
+      "main": [
+        [
+          {
+            "node": "Parse Button Action",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Button Action": {
+      "main": [
+        [
+          {
+            "node": "Route Button Action",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Route Button Action": {
+      "main": [
+        [
+          {
+            "node": "Get Mail for Approval",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Get Mail for Rejection",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Get Mail for Editing",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Mail for Approval": {
+      "main": [
+        [
+          {
+            "node": "Is Mail Pending (Approve)?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Mail Pending (Approve)?": {
+      "main": [
+        [
+          {
+            "node": "Get Sender Mail History",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Sender Mail History": {
+      "main": [
+        [
+          {
+            "node": "Check 24h Send Limit",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check 24h Send Limit": {
+      "main": [
+        [
+          {
+            "node": "Within Send Limit?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Within Send Limit?": {
+      "main": [
+        [
+          {
+            "node": "Lock Mail as Sending",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Notify Send Limit Reached",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Lock Mail as Sending": {
+      "main": [
+        [
+          {
+            "node": "Sending Lock Acquired?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sending Lock Acquired?": {
+      "main": [
+        [
+          {
+            "node": "Send Gmail Reply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Gmail Reply": {
+      "main": [
+        [
+          {
+            "node": "Mark Mail as Sent",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Revert Status to Pending",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mark Mail as Sent": {
+      "main": [
+        [
+          {
+            "node": "Notify Reply Sent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Revert Status to Pending": {
+      "main": [
+        [
+          {
+            "node": "Notify Send Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Mail for Rejection": {
+      "main": [
+        [
+          {
+            "node": "Is Mail Pending (Reject)?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Mail Pending (Reject)?": {
+      "main": [
+        [
+          {
+            "node": "Mark Mail as Rejected",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mark Mail as Rejected": {
+      "main": [
+        [
+          {
+            "node": "Reject Lock Acquired?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Reject Lock Acquired?": {
+      "main": [
+        [
+          {
+            "node": "Notify Reply Rejected",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Mail for Editing": {
+      "main": [
+        [
+          {
+            "node": "Is Mail Pending (Edit)?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Mail Pending (Edit)?": {
+      "main": [
+        [
+          {
+            "node": "Request Edited Text",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Request Edited Text": {
+      "main": [
+        [
+          {
+            "node": "Save Edit Prompt ID",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Message From Owner?": {
+      "main": [
+        [
+          {
+            "node": "Is Reply With Text?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Reply With Text?": {
+      "main": [
+        [
+          {
+            "node": "Find Mail by Edit Prompt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Find Mail by Edit Prompt": {
+      "main": [
+        [
+          {
+            "node": "Is Edited Mail Pending?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Edited Mail Pending?": {
+      "main": [
+        [
+          {
+            "node": "Save Edited Draft",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save Edited Draft": {
+      "main": [
+        [
+          {
+            "node": "Send Updated Draft for Approval",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "nodeGroups": [
+    {
+      "id": "c153902f-2bba-4ce2-8630-9138a7ee8779",
+      "name": "Validate button press",
+      "nodeIds": [
+        "95b55a3c-7d75-4702-9411-524defc880e1",
+        "9c2dbc0a-6490-4a4c-a094-fa4d4d8ad6b0",
+        "6666d7cd-7c7c-4c3f-8c22-30f845a83340",
+        "b0a61078-4221-4076-aa1b-e6bdde38f06c"
+      ],
+      "description": "no description"
+    },
+    {
+      "id": "fffbb659-4be7-4e1b-b276-91f12bf046c9",
+      "name": "Send approved reply",
+      "nodeIds": [
+        "07f43c8c-d72b-4a55-aa2b-a5816cb076ce",
+        "c465bbfc-6cc7-439c-b665-972256cab94f",
+        "168f6bc3-9c46-43b5-88c2-3a702d09658f",
+        "a4172aef-032f-4770-8306-2c0c37176162",
+        "c8a34be6-c4cd-4919-868a-772558257bbb",
+        "862f5e73-31a6-4f60-b11e-7f26bd6d0865",
+        "c0c8b8d6-182b-446d-a877-98d50b61a347",
+        "3466f27f-eb67-47e8-9947-6365cdc31580",
+        "7a1e02bf-38b4-410f-8d30-fe400a1e380d",
+        "d52dc083-e69e-4e53-bf8d-947366b88885",
+        "b06866a5-69b2-4246-aa20-45d0d48e14ef",
+        "433cec5b-4a4e-4396-97a6-c26679d00c33",
+        "3853f665-e8da-4af3-b151-4f3cd5051113"
+      ],
+      "description": "no description"
+    },
+    {
+      "id": "68ead849-9a46-4c00-aa5c-3609f6a5a658",
+      "name": "Reject draft",
+      "nodeIds": [
+        "0b61a21b-ff70-4fe9-a8cb-8753e6702490",
+        "5ccc409e-1b2e-40cb-af15-9a496933603d",
+        "65920486-cce7-47e6-bcc3-9c56d4ba60e5",
+        "9c6e9624-ca30-4d32-a660-886972e139fc",
+        "8b6b1427-c8d8-4b79-b098-dc4face280d1"
+      ],
+      "description": "no description"
+    },
+    {
+      "id": "fb644d01-f19e-4a76-804c-bba0705c9d92",
+      "name": "Editing message",
+      "nodeIds": [
+        "5c49da31-2175-45e5-b231-791a9508dc9b",
+        "f7e17f33-ce0b-4fb8-bcea-dd3f81586101",
+        "189c8f4e-a88d-408a-8eb9-7c3d8f222853",
+        "04307092-8234-47d1-89c9-3fc1ff529551"
+      ],
+      "description": "no description"
+    },
+    {
+      "id": "23579d2e-7980-4bf9-b421-d4489a1b501c",
+      "name": "Edited mail check and sending",
+      "nodeIds": [
+        "126db29e-1e2d-408c-b1d7-4cbc837f443b",
+        "b67f273f-d927-4e6d-b88a-bf945ad4e1b8",
+        "b65456fe-7386-4559-958e-1d083270d4f1",
+        "65f40b74-7eb5-4f03-8251-5a99428d87c3",
+        "0a1b9d45-1da3-44b0-b4d8-813767506b06",
+        "ab37809c-7864-4ce3-b89b-682c283ade2b"
+      ],
+      "description": "no desctription"
+    }
+  ],
+  "tags": []
+}
